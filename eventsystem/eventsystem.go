@@ -24,7 +24,7 @@ type Handle struct {
 	updates list.List
 
 	// 第一版先随机 无序
-	systems map[SystemType]map[]struct{}
+	systems map[ComponentType]map[SystemType]System
 }
 
 func (h *Handle) RegisterSystem(component Component, isRegister bool) {
@@ -36,7 +36,7 @@ func (h *Handle) RegisterSystem(component Component, isRegister bool) {
 		h.group = map[uint64]Component{}
 	}
 	h.group[component.GetUid()] = component
-	sysGroup := h.systems[component.GetSystemType()]
+	sysGroup := h.systems[component.GetComponentType()]
 	if 0 == len(sysGroup) {
 		return
 	}
