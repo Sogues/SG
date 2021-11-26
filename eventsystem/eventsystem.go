@@ -18,6 +18,10 @@ type Component interface {
 type System interface {
 }
 
+// 组件基本是数据的集合
+// 每个component 会对应多个基本系统
+// 系统更像是 组件的具体行为
+
 type Handle struct {
 	group map[uint64]Component
 
