@@ -1,4 +1,4 @@
-package eventsystem
+package obj
 
 const (
 	SystemTypeNone SystemType = iota

@@ -1,4 +1,4 @@
-package eventsystem
+package obj
 
 import (
 	"sync"
@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	AwakeBaseSystemImplTestComponentId = GenComponentTypeId()
+	awakeBaseSystemImplTestComponentId = GenComponentTypeId()
 )
 
 type (
@@ -19,17 +19,17 @@ type (
 )
 
 func (componentTest) ComponentTypeId() ComponentType {
-	return AwakeBaseSystemImplTestComponentId
+	return awakeBaseSystemImplTestComponentId
 }
 
-type AwakeBaseSystemImplTest struct {
+type awakeBaseSystemImplTest struct {
 }
 
-func (AwakeBaseSystemImplTest) ComponentTypeId() ComponentType {
+func (awakeBaseSystemImplTest) ComponentTypeId() ComponentType {
 	return componentTest{}.ComponentTypeId()
 }
 
-func (i *AwakeBaseSystemImplTest) Awake(component, param interface{}) {
+func (i *awakeBaseSystemImplTest) Awake(component, param interface{}) {
 	cp, ok := component.(*componentTest)
 	if !ok {
 		return
@@ -41,12 +41,12 @@ func (i *AwakeBaseSystemImplTest) Awake(component, param interface{}) {
 	i.awake(cp, p)
 }
 
-func (AwakeBaseSystemImplTest) awake(cmp *componentTest, param componentTestAwakeParam) {
+func (awakeBaseSystemImplTest) awake(cmp *componentTest, param componentTestAwakeParam) {
 	cmp.val = param.val * param.val
 }
 
 func TestAwakeBaseSystem_Run(t *testing.T) {
-	sys := NewAwakeSystemWithImpl(&AwakeBaseSystemImplTest{})
+	sys := NewAwakeSystemWithImpl(&awakeBaseSystemImplTest{})
 	cmp := &componentTest{}
 	cmpParam := componentTestAwakeParam{val: 10}
 	sys.Run(cmp, cmpParam)
@@ -61,7 +61,7 @@ func TestAwakeBaseSystem_Run(t *testing.T) {
 //BenchmarkAwakeBaseSystem_Run/3
 //BenchmarkAwakeBaseSystem_Run/3-12  	57221059	        25.0 ns/op	       0 B/op	       0 allocs/op
 func BenchmarkAwakeBaseSystem_Run(b *testing.B) {
-	sys := NewAwakeSystemWithImpl(&AwakeBaseSystemImplTest{})
+	sys := NewAwakeSystemWithImpl(&awakeBaseSystemImplTest{})
 	b.Run("1", func(b *testing.B) {
 		cmp := &componentTest{}
 		b.ResetTimer()
@@ -96,4 +96,34 @@ func BenchmarkAwakeBaseSystem_Run(b *testing.B) {
 		}
 		b.ReportAllocs()
 	})
+}
+
+func TestReg(t *testing.T) {
+	Reg(NewAwakeSystemWithImpl(&awakeBaseSystemImplTest{}))
+	cpt := &componentTest{}
+	cpm := componentTestAwakeParam{val: 10}
+	for _, v := range global.systems[cpt.ComponentTypeId()] {
+		v.Run(cpt, cpm)
+	}
+	t.Log(cpt)
+}
+
+//systems map[ComponentType]map[SystemType]BaseSystem
+//BenchmarkReg
+//BenchmarkReg-12    	21108661	        70.6 ns/op	       4 B/op	       1 allocs/op
+var benchmarkRegOnce = &sync.Once{}
+
+func BenchmarkReg(b *testing.B) {
+	benchmarkRegOnce.Do(func() {
+		Reg(NewAwakeSystemWithImpl(&awakeBaseSystemImplTest{}))
+	})
+	cpt := &componentTest{}
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		cpm := componentTestAwakeParam{val: 10}
+		for _, v := range global.systems[cpt.ComponentTypeId()] {
+			v.Run(cpt, cpm)
+		}
+	}
+	b.ReportAllocs()
 }
