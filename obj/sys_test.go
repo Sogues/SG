@@ -3,10 +3,8 @@ package obj
 import (
 	"sync"
 	"testing"
-)
 
-var (
-	awakeBaseSystemImplTestComponentId = GenComponentTypeId()
+	"github.com/Sogues/ETForGo/types"
 )
 
 type (
@@ -18,14 +16,14 @@ type (
 	}
 )
 
-func (componentTest) ComponentTypeId() ComponentType {
-	return awakeBaseSystemImplTestComponentId
+func (componentTest) ComponentTypeId() types.EntityType {
+	return types.EntityTypeTest1
 }
 
 type awakeBaseSystemImplTest struct {
 }
 
-func (awakeBaseSystemImplTest) ComponentTypeId() ComponentType {
+func (awakeBaseSystemImplTest) ComponentTypeId() types.EntityType {
 	return componentTest{}.ComponentTypeId()
 }
 

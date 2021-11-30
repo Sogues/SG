@@ -3,6 +3,8 @@ package obj
 import (
 	"fmt"
 	"testing"
+
+	"github.com/Sogues/ETForGo/types"
 )
 
 type (
@@ -17,14 +19,14 @@ type (
 	}
 )
 
-func (e *entityTestHuman) EntityTypeId() uint64 {
-	return 1
+func (e *entityTestHuman) EntityTypeId() types.EntityType {
+	return types.EntityTypeTest1
 }
-func (e *entityTestFace) EntityTypeId() uint64 {
-	return 2
+func (e *entityTestFace) EntityTypeId() types.EntityType {
+	return types.EntityTypeTest2
 }
-func (e *entityTestBody) EntityTypeId() uint64 {
-	return 3
+func (e *entityTestBody) EntityTypeId() types.EntityType {
+	return types.EntityTypeTest3
 }
 
 func TestBaseEntity_AddToChildren(t *testing.T) {

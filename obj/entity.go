@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"time"
+
+	"github.com/Sogues/ETForGo/types"
 )
 
 type EntityStatus uint8
@@ -27,7 +29,7 @@ func genUid() uint64 {
 
 type (
 	EntityImpl interface {
-		EntityTypeId() uint64
+		EntityTypeId() types.EntityType
 	}
 	// todo 管理entity自身的类型id
 	BaseEntity struct {
@@ -43,7 +45,7 @@ type (
 		children map[uint64]*BaseEntity
 
 		// 组件以类型为单位 禁止同类型组件重复添加
-		components map[uint64]*BaseEntity
+		components map[types.EntityType]*BaseEntity
 	}
 )
 
@@ -76,8 +78,9 @@ func (e *BaseEntity) SetRegister(register bool) {
 	}
 	// todo
 	// 后续触发注册事件
+
 	fmt.Printf("%v uid %v exec register val %v\n",
-		reflect.TypeOf(e).Name(), e.GetUid(), register)
+		reflect.TypeOf(e).String(), e.GetUid(), register)
 }
 
 func (e *BaseEntity) IsComponent() bool {
@@ -148,7 +151,7 @@ func (e *BaseEntity) AddToComponents(component *BaseEntity) {
 		return
 	}
 	if nil == e.components {
-		e.components = map[uint64]*BaseEntity{}
+		e.components = map[types.EntityType]*BaseEntity{}
 	}
 	e.components[component.impl.EntityTypeId()] = component
 }

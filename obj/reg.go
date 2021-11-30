@@ -2,6 +2,8 @@ package obj
 
 import (
 	"fmt"
+
+	"github.com/Sogues/ETForGo/types"
 )
 
 var (
@@ -10,18 +12,19 @@ var (
 
 type (
 	RegSys struct {
-		systems map[ComponentType]map[SystemType]BaseSystem
+		// componentId -- systemId
+		systems map[types.EntityType]map[types.EntityType]BaseSystem
 	}
 )
 
 func Reg(system BaseSystem) {
 	if nil == global.systems {
-		global.systems = map[ComponentType]map[SystemType]BaseSystem{}
+		global.systems = map[types.EntityType]map[types.EntityType]BaseSystem{}
 	}
 	ctd := system.ComponentTypeId()
 	group := global.systems[ctd]
 	if nil == group {
-		group = map[SystemType]BaseSystem{}
+		group = map[types.EntityType]BaseSystem{}
 		global.systems[ctd] = group
 	}
 	std := system.SystemTypeId()

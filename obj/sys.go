@@ -1,33 +1,16 @@
 package obj
 
-const (
-	SystemTypeNone SystemType = iota
-	SystemTypeAwake
-)
-
-var (
-	ComponentTypeBaseId ComponentType = 0
-)
-
-func GenComponentTypeId() ComponentType {
-	ComponentTypeBaseId++
-	return ComponentTypeBaseId
-}
-
-type (
-	SystemType    uint32
-	ComponentType uint32
-)
+import "github.com/Sogues/ETForGo/types"
 
 type (
 	BaseSystem interface {
-		ComponentTypeId() ComponentType
-		SystemTypeId() SystemType
+		ComponentTypeId() types.EntityType
+		SystemTypeId() types.EntityType
 		Run(component, param interface{})
 	}
 
 	AwakeBaseSystemImpl interface {
-		ComponentTypeId() ComponentType
+		ComponentTypeId() types.EntityType
 		Awake(component, param interface{})
 	}
 
@@ -42,11 +25,11 @@ func NewAwakeSystemWithImpl(impl AwakeBaseSystemImpl) BaseSystem {
 	return s
 }
 
-func (s *AwakeBaseSystem) ComponentTypeId() ComponentType {
+func (s *AwakeBaseSystem) ComponentTypeId() types.EntityType {
 	return s.impl.ComponentTypeId()
 }
-func (s *AwakeBaseSystem) SystemTypeId() SystemType {
-	return SystemTypeAwake
+func (s *AwakeBaseSystem) SystemTypeId() types.EntityType {
+	return types.EntityTypeSystemAwake
 }
 
 func (s *AwakeBaseSystem) Run(component, param interface{}) {
