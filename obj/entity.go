@@ -40,20 +40,19 @@ type (
 		IsCreate() bool
 		SetCreate(create bool)
 		GetParent() Entity
+		// 传入self是由于base并不是完整的entity
 		SetParent(self, parent Entity)
 		SetComponentParent(self, parent Entity)
 		GetDomain() Entity
 		SetDomain(domain Entity)
 		IsDisposed() bool
 
-		//
+		// 方便在base类中调用
+		getBase() *BaseEntity
 		addToChildren(child Entity)
 		removeFromChildren(child Entity)
 		addToComponents(component Entity)
 		removeFromComponents(component Entity)
-
-		// base部分驱动
-		getBase() *BaseEntity
 	}
 	BaseEntity struct {
 		uid    uint64
@@ -69,21 +68,6 @@ type (
 		components map[types.EntityType]Entity
 	}
 )
-
-func (e *BaseEntity) getBase() *BaseEntity {
-	if nil == e {
-		return nil
-	}
-	return e
-}
-
-func (e *BaseEntity) checkSelf(self Entity) bool {
-	if nil == e || nil == self.getBase() {
-		return false
-	}
-	ok := e == self.getBase()
-	return ok
-}
 
 func (e *BaseEntity) GetUid() uint64    { return e.uid }
 func (e *BaseEntity) SetUid(uid uint64) { e.uid = uid }
@@ -170,6 +154,35 @@ func (e *BaseEntity) SetComponentParent(self, parent Entity) {
 	e.GetParent().addToComponents(self)
 	e.SetDomain(parent.GetDomain())
 }
+
+func (e *BaseEntity) GetDomain() Entity { return e.domain }
+func (e *BaseEntity) SetDomain(domain Entity) {
+	if nil == domain {
+		return
+	}
+	if e.GetDomain() == domain {
+		return
+	}
+	preDomain := e.domain
+	e.domain = domain
+	if nil == preDomain {
+		// todo 生成uid
+		e.uid = genUid()
+
+		e.SetRegister(true)
+	}
+	for _, v := range e.children {
+		v.SetDomain(e.GetDomain())
+	}
+	for _, v := range e.components {
+		v.SetDomain(e.GetDomain())
+	}
+	if !e.IsCreate() {
+		e.SetCreate(true)
+	}
+}
+
+func (e *BaseEntity) IsDisposed() bool { return 0 == e.GetUid() }
 func (e *BaseEntity) addToChildren(child Entity) {
 	if nil == e.children {
 		e.children = map[uint64]Entity{}
@@ -202,31 +215,17 @@ func (e *BaseEntity) removeFromComponents(component Entity) {
 	delete(e.components, component.EntityTypeId())
 }
 
-func (e *BaseEntity) GetDomain() Entity { return e.domain }
-func (e *BaseEntity) SetDomain(domain Entity) {
-	if nil == domain {
-		return
+func (e *BaseEntity) getBase() *BaseEntity {
+	if nil == e {
+		return nil
 	}
-	if e.GetDomain() == domain {
-		return
-	}
-	preDomain := e.domain
-	e.domain = domain
-	if nil == preDomain {
-		// todo 生成uid
-		e.uid = genUid()
-
-		e.SetRegister(true)
-	}
-	for _, v := range e.children {
-		v.SetDomain(e.GetDomain())
-	}
-	for _, v := range e.components {
-		v.SetDomain(e.GetDomain())
-	}
-	if !e.IsCreate() {
-		e.SetCreate(true)
-	}
+	return e
 }
 
-func (e *BaseEntity) IsDisposed() bool { return 0 == e.GetUid() }
+func (e *BaseEntity) checkSelf(self Entity) bool {
+	if nil == e || nil == self.getBase() {
+		return false
+	}
+	ok := e == self.getBase()
+	return ok
+}
