@@ -1,0 +1,18 @@
+i 关于基类的实现
+想实现虚类必须实现的端口逻辑
+举例
+
+type Inter interface {
+    MustImpl()
+}
+
+type Specify struct {
+}
+
+func Handle(it Inter) {
+}
+
+func do() {
+    s := &Specify{}
+    Handle(s) // 必须实现MustImpl 以此来维持逻辑且强校验
+}

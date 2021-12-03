@@ -1,8 +1,6 @@
 package obj
 
 import (
-	"fmt"
-	"reflect"
 	"time"
 
 	"github.com/Sogues/ETForGo/types"
@@ -28,30 +26,67 @@ func genUid() uint64 {
 }
 
 type (
-	EntityImpl interface {
-		EntityTypeId() types.EntityType
-	}
 	// todo 管理entity自身的类型id
+	Entity interface {
+		EntityTypeId() types.EntityType
+		GetUid() uint64
+		SetUid(uid uint64)
+		FromPool() bool
+		SetFromPool(from bool)
+		IsRegister() bool
+		SetRegister(register bool)
+		IsComponent() bool
+		SetComponent(component bool)
+		IsCreate() bool
+		SetCreate(create bool)
+		GetParent() Entity
+		SetParent(self, parent Entity)
+		SetComponentParent(self, parent Entity)
+		GetDomain() Entity
+		SetDomain(domain Entity)
+		IsDisposed() bool
+
+		//
+		addToChildren(child Entity)
+		removeFromChildren(child Entity)
+		addToComponents(component Entity)
+		removeFromComponents(component Entity)
+
+		// base部分驱动
+		getBase() *BaseEntity
+	}
 	BaseEntity struct {
 		uid    uint64
 		status EntityStatus
 
-		impl EntityImpl
+		domain Entity // 作用域
 
-		domain *BaseEntity // 作用域
+		parent Entity // 父节点
 
-		parent *BaseEntity // 父节点
-
-		children map[uint64]*BaseEntity
+		children map[uint64]Entity
 
 		// 组件以类型为单位 禁止同类型组件重复添加
-		components map[types.EntityType]*BaseEntity
+		components map[types.EntityType]Entity
 	}
 )
 
-func (e *BaseEntity) GetBaseEntity() *BaseEntity { return e }
-func (e *BaseEntity) GetUid() uint64             { return e.uid }
-func (e *BaseEntity) SetUid(uid uint64)          { e.uid = uid }
+func (e *BaseEntity) getBase() *BaseEntity {
+	if nil == e {
+		return nil
+	}
+	return e
+}
+
+func (e *BaseEntity) checkSelf(self Entity) bool {
+	if nil == e || nil == self.getBase() {
+		return false
+	}
+	ok := e == self.getBase()
+	return ok
+}
+
+func (e *BaseEntity) GetUid() uint64    { return e.uid }
+func (e *BaseEntity) SetUid(uid uint64) { e.uid = uid }
 func (e *BaseEntity) FromPool() bool {
 	return 0 != e.status&StatusFromPool
 }
@@ -78,9 +113,6 @@ func (e *BaseEntity) SetRegister(register bool) {
 	}
 	// todo
 	// 后续触发注册事件
-
-	fmt.Printf("%v uid %v exec register val %v\n",
-		reflect.TypeOf(e).String(), e.GetUid(), register)
 }
 
 func (e *BaseEntity) IsComponent() bool {
@@ -105,38 +137,46 @@ func (e *BaseEntity) SetCreate(create bool) {
 	}
 }
 
-func (e *BaseEntity) GetParent() *BaseEntity { return e.parent }
-func (e *BaseEntity) SetParent(parent *BaseEntity) {
+func (e *BaseEntity) GetParent() Entity { return e.parent }
+func (e *BaseEntity) SetParent(self, parent Entity) {
+	// 必须是自己
+	if !e.checkSelf(self) {
+		return
+	}
 	if nil == parent || nil == parent.GetDomain() || e.GetParent() == parent {
 		return
 	}
 	if nil != e.GetParent() {
-		e.GetParent().RemoveFromChildren(e)
+		e.GetParent().removeFromChildren(self)
 	}
 	e.parent = parent
 	e.SetComponent(false)
-	e.GetParent().AddToChildren(e)
+	e.GetParent().addToChildren(self)
 	e.SetDomain(parent.GetDomain())
 }
-func (e *BaseEntity) setComponentParent(parent *BaseEntity) {
+func (e *BaseEntity) SetComponentParent(self, parent Entity) {
+	// 必须是自己
+	if !e.checkSelf(self) {
+		return
+	}
 	if nil == parent || nil == parent.GetDomain() || e.GetParent() == parent {
 		return
 	}
 	if nil != e.GetParent() {
-		e.GetParent().RemoveFromChildren(e)
+		e.GetParent().removeFromChildren(self)
 	}
 	e.parent = parent
 	e.SetComponent(true)
-	e.GetParent().AddToComponents(e)
+	e.GetParent().addToComponents(self)
 	e.SetDomain(parent.GetDomain())
 }
-func (e *BaseEntity) AddToChildren(child *BaseEntity) {
+func (e *BaseEntity) addToChildren(child Entity) {
 	if nil == e.children {
-		e.children = map[uint64]*BaseEntity{}
+		e.children = map[uint64]Entity{}
 	}
 	e.children[child.GetUid()] = child
 }
-func (e *BaseEntity) RemoveFromChildren(child *BaseEntity) {
+func (e *BaseEntity) removeFromChildren(child Entity) {
 	if nil == child {
 		return
 	}
@@ -146,24 +186,24 @@ func (e *BaseEntity) RemoveFromChildren(child *BaseEntity) {
 	}
 }
 
-func (e *BaseEntity) AddToComponents(component *BaseEntity) {
+func (e *BaseEntity) addToComponents(component Entity) {
 	if nil == component {
 		return
 	}
 	if nil == e.components {
-		e.components = map[types.EntityType]*BaseEntity{}
+		e.components = map[types.EntityType]Entity{}
 	}
-	e.components[component.impl.EntityTypeId()] = component
+	e.components[component.EntityTypeId()] = component
 }
-func (e *BaseEntity) RemoveFromComponents(component *BaseEntity) {
+func (e *BaseEntity) removeFromComponents(component Entity) {
 	if nil == component {
 		return
 	}
-	delete(e.components, component.impl.EntityTypeId())
+	delete(e.components, component.EntityTypeId())
 }
 
-func (e *BaseEntity) GetDomain() *BaseEntity { return e.domain }
-func (e *BaseEntity) SetDomain(domain *BaseEntity) {
+func (e *BaseEntity) GetDomain() Entity { return e.domain }
+func (e *BaseEntity) SetDomain(domain Entity) {
 	if nil == domain {
 		return
 	}

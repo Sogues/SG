@@ -46,7 +46,6 @@ func TestCombine(t *testing.T) {
 	s.impl = s
 }
 
-var b1
 func BenchmarkTestRoleAwakeSystemAwake(b *testing.B) {
 
 }
