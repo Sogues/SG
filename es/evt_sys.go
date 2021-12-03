@@ -10,18 +10,14 @@ import (
 // 执行对应函数
 
 type (
-	Type interface {
+	System interface {
 		EntityTypeId() types.EntityType
 		BaseSystemId() types.EntityType
 	}
 	AwakeEs interface {
 		Awake(component, param interface{})
 	}
-	BaseAwakeSystem struct {
-	}
+	BaseAwakeSystem struct{}
 )
 
 func (*BaseAwakeSystem) BaseSystemId() types.EntityType { return types.EntityTypeSystemAwake }
-
-func (*BaseAwakeSystem) Awake(component, param interface{}) {
-}
