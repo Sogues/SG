@@ -1,6 +1,8 @@
 package types
 
-type EntityType uint64
+type (
+	EntityType uint64
+)
 
 const (
 	EntityTypeCat1 uint64 = 48 // 保留8位1类型
@@ -33,4 +35,5 @@ const (
 const (
 	EntityTypeSystemNone EntityType = EntityTypeSystem | 1<<(EntityTypeCat2+iota)
 	EntityTypeSystemAwake
+	EntityTypeSystemUpdate
 )

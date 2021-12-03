@@ -17,7 +17,8 @@ const (
 )
 
 var (
-	tempUid = uint64(time.Now().Unix())
+	tempUid       = uint64(time.Now().Unix())
+	EntityFactory = &Factory{}
 )
 
 func genUid() uint64 {
@@ -27,33 +28,7 @@ func genUid() uint64 {
 
 type (
 	// todo 管理entity自身的类型id
-	Entity interface {
-		EntityTypeId() types.EntityType
-		GetUid() uint64
-		SetUid(uid uint64)
-		FromPool() bool
-		SetFromPool(from bool)
-		IsRegister() bool
-		SetRegister(register bool)
-		IsComponent() bool
-		SetComponent(component bool)
-		IsCreate() bool
-		SetCreate(create bool)
-		GetParent() Entity
-		// 传入self是由于base并不是完整的entity
-		SetParent(self, parent Entity)
-		SetComponentParent(self, parent Entity)
-		GetDomain() Entity
-		SetDomain(domain Entity)
-		IsDisposed() bool
 
-		// 方便在base类中调用
-		getBase() *BaseEntity
-		addToChildren(child Entity)
-		removeFromChildren(child Entity)
-		addToComponents(component Entity)
-		removeFromComponents(component Entity)
-	}
 	BaseEntity struct {
 		uid    uint64
 		status EntityStatus
@@ -66,6 +41,10 @@ type (
 
 		// 组件以类型为单位 禁止同类型组件重复添加
 		components map[types.EntityType]Entity
+	}
+
+	Factory struct {
+		types map[types.EntityType]func() Entity
 	}
 )
 
@@ -85,7 +64,10 @@ func (e *BaseEntity) SetFromPool(from bool) {
 func (e *BaseEntity) IsRegister() bool {
 	return 0 != e.status&StatusRegister
 }
-func (e *BaseEntity) SetRegister(register bool) {
+func (e *BaseEntity) SetRegister(self Entity, register bool) {
+	if !e.checkSelf(self) {
+		return
+	}
 	if register == e.IsRegister() {
 		return
 	}
@@ -95,8 +77,8 @@ func (e *BaseEntity) SetRegister(register bool) {
 		e.status &= ^StatusRegister
 
 	}
-	// todo
 	// 后续触发注册事件
+	SystemProcessor.Register(self, register)
 }
 
 func (e *BaseEntity) IsComponent() bool {
@@ -136,7 +118,7 @@ func (e *BaseEntity) SetParent(self, parent Entity) {
 	e.parent = parent
 	e.SetComponent(false)
 	e.GetParent().addToChildren(self)
-	e.SetDomain(parent.GetDomain())
+	e.SetDomain(self, parent.GetDomain())
 }
 func (e *BaseEntity) SetComponentParent(self, parent Entity) {
 	// 必须是自己
@@ -152,12 +134,12 @@ func (e *BaseEntity) SetComponentParent(self, parent Entity) {
 	e.parent = parent
 	e.SetComponent(true)
 	e.GetParent().addToComponents(self)
-	e.SetDomain(parent.GetDomain())
+	e.SetDomain(self, parent.GetDomain())
 }
 
 func (e *BaseEntity) GetDomain() Entity { return e.domain }
-func (e *BaseEntity) SetDomain(domain Entity) {
-	if nil == domain {
+func (e *BaseEntity) SetDomain(self, domain Entity) {
+	if !e.checkSelf(self) || nil == domain {
 		return
 	}
 	if e.GetDomain() == domain {
@@ -169,13 +151,13 @@ func (e *BaseEntity) SetDomain(domain Entity) {
 		// todo 生成uid
 		e.uid = genUid()
 
-		e.SetRegister(true)
+		e.SetRegister(self, true)
 	}
 	for _, v := range e.children {
-		v.SetDomain(e.GetDomain())
+		v.SetDomain(v, e.GetDomain())
 	}
 	for _, v := range e.components {
-		v.SetDomain(e.GetDomain())
+		v.SetDomain(v, e.GetDomain())
 	}
 	if !e.IsCreate() {
 		e.SetCreate(true)
@@ -208,6 +190,19 @@ func (e *BaseEntity) addToComponents(component Entity) {
 	}
 	e.components[component.EntityTypeId()] = component
 }
+
+func (e *BaseEntity) AddToComponent(entityType types.EntityType, param interface{}) {
+	if _, ok := e.components[entityType]; ok {
+		// todo
+		return
+	}
+	et := EntityFactory.Create(entityType)
+	if nil == et {
+		return
+	}
+	SystemProcessor.Awake(et, param)
+}
+
 func (e *BaseEntity) removeFromComponents(component Entity) {
 	if nil == component {
 		return
@@ -228,4 +223,19 @@ func (e *BaseEntity) checkSelf(self Entity) bool {
 	}
 	ok := e == self.getBase()
 	return ok
+}
+
+func (f *Factory) Create(eid types.EntityType) Entity {
+	if nil == f.types {
+		return nil
+	}
+	fn := f.types[eid]
+	if nil == fn {
+		return nil
+	}
+	return fn()
+}
+
+func (f *Factory) Release(entity Entity) {
+	return
 }

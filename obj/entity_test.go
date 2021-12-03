@@ -35,7 +35,7 @@ func getPtr(i interface{}) uintptr {
 
 func TestBaseEntity_SetDomain(t *testing.T) {
 	human := &entityTestHuman{}
-	human.SetDomain(human)
+	human.SetDomain(human, human)
 
 	if getPtr(human) != getPtr(human.GetDomain()) {
 		t.Error("human and human domain not same")
@@ -57,7 +57,7 @@ func TestBaseEntity_SetDomain(t *testing.T) {
 
 func TestBaseEntity_SetComponentParent(t *testing.T) {
 	human := &entityTestHuman{}
-	human.SetDomain(human)
+	human.SetDomain(human, human)
 	face := &entityTestFace{}
 	face.SetComponentParent(human, face)
 	if nil != face.GetParent() {
