@@ -41,7 +41,7 @@ func TestBaseEntity_SetDomain(t *testing.T) {
 		t.Error("human and human domain not same")
 	}
 	face := &entityTestFace{}
-	face.SetParent(face, human)
+	face.setParent(face, human)
 
 	if getPtr(human) != getPtr(face.GetDomain()) {
 		t.Error("human and face domain not same")
@@ -59,11 +59,11 @@ func TestBaseEntity_SetComponentParent(t *testing.T) {
 	human := &entityTestHuman{}
 	human.SetDomain(human, human)
 	face := &entityTestFace{}
-	face.SetComponentParent(human, face)
+	face.setComponentParent(human, face)
 	if nil != face.GetParent() {
 		t.Error("mistake invoke, face need nil parent")
 	}
-	face.SetComponentParent(face, human)
+	face.setComponentParent(face, human)
 	if getPtr(human) != getPtr(face.GetParent()) {
 		t.Error("human and face parent not same")
 	}

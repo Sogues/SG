@@ -1,8 +1,6 @@
 package obj
 
 import (
-	"time"
-
 	"github.com/Sogues/ETForGo/types"
 )
 
@@ -17,21 +15,16 @@ const (
 )
 
 var (
-	tempUid       = uint64(time.Now().Unix())
 	EntityFactory = &Factory{}
 )
-
-func genUid() uint64 {
-	tempUid++
-	return tempUid
-}
 
 type (
 	// todo 管理entity自身的类型id
 
 	BaseEntity struct {
-		uid    uint64
-		status EntityStatus
+		instanceId uint64
+		uid        uint64
+		status     EntityStatus
 
 		domain Entity // 作用域
 
@@ -48,8 +41,10 @@ type (
 	}
 )
 
-func (e *BaseEntity) GetUid() uint64    { return e.uid }
-func (e *BaseEntity) SetUid(uid uint64) { e.uid = uid }
+func (e *BaseEntity) GetInstanceId() uint64           { return e.instanceId }
+func (e *BaseEntity) SetInstanceId(instanceId uint64) { e.instanceId = instanceId }
+func (e *BaseEntity) GetUid() uint64                  { return e.uid }
+func (e *BaseEntity) SetUid(uid uint64)               { e.uid = uid }
 func (e *BaseEntity) FromPool() bool {
 	return 0 != e.status&StatusFromPool
 }
@@ -104,7 +99,7 @@ func (e *BaseEntity) SetCreate(create bool) {
 }
 
 func (e *BaseEntity) GetParent() Entity { return e.parent }
-func (e *BaseEntity) SetParent(self, parent Entity) {
+func (e *BaseEntity) setParent(self, parent Entity) {
 	// 必须是自己
 	if !e.checkSelf(self) {
 		return
@@ -120,16 +115,17 @@ func (e *BaseEntity) SetParent(self, parent Entity) {
 	e.GetParent().addToChildren(self)
 	e.SetDomain(self, parent.GetDomain())
 }
-func (e *BaseEntity) SetComponentParent(self, parent Entity) {
+func (e *BaseEntity) GetComponentParent() Entity { return e.parent }
+func (e *BaseEntity) setComponentParent(self, parent Entity) {
 	// 必须是自己
 	if !e.checkSelf(self) {
 		return
 	}
-	if nil == parent || nil == parent.GetDomain() || e.GetParent() == parent {
+	if nil == parent || nil == parent.GetDomain() || e.GetComponentParent() == parent {
 		return
 	}
-	if nil != e.GetParent() {
-		e.GetParent().removeFromChildren(self)
+	if nil != e.GetComponentParent() {
+		e.GetComponentParent().removeFromChildren(self)
 	}
 	e.parent = parent
 	e.SetComponent(true)
@@ -148,8 +144,7 @@ func (e *BaseEntity) SetDomain(self, domain Entity) {
 	preDomain := e.domain
 	e.domain = domain
 	if nil == preDomain {
-		// todo 生成uid
-		e.uid = genUid()
+		e.instanceId = IdGen.GenId()
 
 		e.SetRegister(self, true)
 	}
@@ -164,13 +159,112 @@ func (e *BaseEntity) SetDomain(self, domain Entity) {
 	}
 }
 
-func (e *BaseEntity) IsDisposed() bool { return 0 == e.GetUid() }
+func (e *BaseEntity) IsDisposed() bool { return 0 == e.GetInstanceId() }
+
+func (e *BaseEntity) GetComponent(entityType types.EntityType) Entity {
+	v, ok := e.components[entityType]
+	if !ok {
+		return nil
+	}
+	return v
+}
+func (e *BaseEntity) AddComponent(self Entity, entityType types.EntityType, param interface{}) Entity {
+	// 必须是自己
+	if !e.checkSelf(self) {
+		return nil
+	}
+	if _, ok := e.components[entityType]; ok {
+		// todo
+		return nil
+	}
+	et := e.create(entityType)
+	if nil == et {
+		return nil
+	}
+	// 不一致点
+	et.SetUid(self.GetUid())
+	et.setComponentParent(et, self)
+	SystemProcessor.Awake(et, param)
+	return et
+}
+
+func (e *BaseEntity) AddChild(self Entity, entityType types.EntityType, param interface{}) Entity {
+	return e.AddChildWithId(self, IdGen.GenId(), entityType, param)
+}
+
+func (e *BaseEntity) AddChildWithId(self Entity, id uint64, entityType types.EntityType, param interface{}) Entity {
+	// 必须是自己
+	if !e.checkSelf(self) {
+		return nil
+	}
+	if _, ok := e.components[entityType]; ok {
+		// todo
+		return nil
+	}
+	et := e.create(entityType)
+	if nil == et {
+		return nil
+	}
+	// 不一致点
+	et.SetUid(id)
+	et.setParent(et, self)
+	SystemProcessor.Awake(et, param)
+	return et
+}
+
+func (e *BaseEntity) Dispose(self Entity) {
+	if !e.checkSelf(self) {
+		return
+	}
+	if e.IsDisposed() {
+		return
+	}
+	e.SetRegister(self, false)
+	e.SetInstanceId(0)
+	for _, v := range e.components {
+		v.Dispose(v)
+	}
+	e.components = nil
+	for _, v := range e.children {
+		v.Dispose(v)
+	}
+	e.children = nil
+	SystemProcessor.Destroy(self)
+	e.domain = nil
+	if nil != e.GetParent() && !e.GetParent().IsDisposed() {
+		if e.IsComponent() {
+			e.GetComponentParent().removeFromComponents(self)
+		} else {
+			e.GetParent().removeFromChildren(self)
+		}
+	}
+	e.status = 0
+}
+
+func (*BaseEntity) create(entityType types.EntityType) Entity {
+	et := EntityFactory.Create(entityType)
+	if nil == et {
+		return nil
+	}
+	et.SetCreate(true)
+	et.SetUid(0)
+	return et
+}
+
+func (e *BaseEntity) getBase() *BaseEntity {
+	if nil == e {
+		return nil
+	}
+	return e
+}
+
 func (e *BaseEntity) addToChildren(child Entity) {
 	if nil == e.children {
 		e.children = map[uint64]Entity{}
 	}
 	e.children[child.GetUid()] = child
 }
+
 func (e *BaseEntity) removeFromChildren(child Entity) {
 	if nil == child {
 		return
@@ -191,30 +285,14 @@ func (e *BaseEntity) addToComponents(component Entity) {
 	e.components[component.EntityTypeId()] = component
 }
 
-func (e *BaseEntity) AddToComponent(entityType types.EntityType, param interface{}) {
-	if _, ok := e.components[entityType]; ok {
-		// todo
-		return
-	}
-	et := EntityFactory.Create(entityType)
-	if nil == et {
-		return
-	}
-	SystemProcessor.Awake(et, param)
-}
-
 func (e *BaseEntity) removeFromComponents(component Entity) {
 	if nil == component {
 		return
 	}
 	delete(e.components, component.EntityTypeId())
-}
-
-func (e *BaseEntity) getBase() *BaseEntity {
-	if nil == e {
-		return nil
+	if nil == e.components {
+		e.components = nil
 	}
-	return e
 }
 
 func (e *BaseEntity) checkSelf(self Entity) bool {

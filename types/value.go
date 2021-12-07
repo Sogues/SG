@@ -36,4 +36,5 @@ const (
 	EntityTypeSystemNone EntityType = EntityTypeSystem | 1<<(EntityTypeCat2+iota)
 	EntityTypeSystemAwake
 	EntityTypeSystemUpdate
+	EntityTypeSystemDestroy
 )
