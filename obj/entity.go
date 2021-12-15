@@ -3,7 +3,7 @@ package obj
 import (
 	"fmt"
 
-	"github.com/Sogues/ETForGo/types"
+	"github.com/Sogues/SG/types"
 )
 
 type EntityStatus uint8

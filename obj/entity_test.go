@@ -4,7 +4,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/Sogues/ETForGo/types"
+	"github.com/Sogues/SG/types"
 )
 
 type (

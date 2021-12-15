@@ -1,6 +1,6 @@
 package obj
 
-import "github.com/Sogues/ETForGo/types"
+import "github.com/Sogues/SG/types"
 
 type (
 	Entity interface {
