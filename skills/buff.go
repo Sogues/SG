@@ -12,6 +12,8 @@ type BuffModel struct {
 	// 对于持有者的状态影响
 	CarrierState int32
 
+	// todo 考虑buff本身对属性的基本修改 不要每次都走回调？
+
 	// 不走接口因为需要方便buff效果的自由组装
 
 	// OnOccur 创建或者层数调整时触发
