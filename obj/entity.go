@@ -1,6 +1,7 @@
 package obj
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/Sogues/ETForGo/types"
@@ -15,6 +16,17 @@ const (
 	StatusCreate
 	StatusNone = 0
 )
+
+func RegEntity(entity Entity) {
+	if nil == EntityFactory.types {
+		EntityFactory.types = map[types.EntityType]func() Entity{}
+	}
+	_, ok := EntityFactory.types[entity.EntityTypeId()]
+	if ok {
+		panic(fmt.Sprintf("RegEntity duplicate type id %v", entity.EntityTypeId()))
+	}
+	EntityFactory.types[entity.EntityTypeId()] = entity.New
+}
 
 var (
 	tempUid       = uint64(time.Now().Unix())

@@ -15,7 +15,7 @@ var (
 	SystemProcessor = NewProcessor()
 )
 
-func Reg(sys sysInter) {
+func RegSystem(sys sysInter) {
 	if nil == SystemProcessor.types {
 		SystemProcessor.types = map[types.EntityType][]sysInter{}
 	}

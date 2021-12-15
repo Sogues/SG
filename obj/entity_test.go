@@ -19,6 +19,16 @@ type (
 	}
 )
 
+func (entityTestHuman) New() Entity {
+	return &entityTestHuman{}
+}
+func (entityTestFace) New() Entity {
+	return &entityTestFace{}
+}
+func (entityTestBody) New() Entity {
+	return &entityTestBody{}
+}
+
 func (e *entityTestHuman) EntityTypeId() types.EntityType {
 	return types.EntityTypeTest1
 }

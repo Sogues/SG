@@ -4,6 +4,7 @@ import "github.com/Sogues/ETForGo/types"
 
 type (
 	Entity interface {
+		New() Entity
 		EntityTypeId() types.EntityType
 		GetUid() uint64
 		SetUid(uid uint64)

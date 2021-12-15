@@ -22,6 +22,10 @@ func (compTest) EntityTypeId() types.EntityType {
 	return types.EntityTypeTest1
 }
 
+func (compTest) New() Entity {
+	return &compTest{}
+}
+
 // 可由工具生成
 func (compTestSys) EntityTypeId() types.EntityType {
 	return compTest{}.EntityTypeId()
@@ -56,7 +60,7 @@ var once = sync.Once{}
 
 func TestES_Awake(t *testing.T) {
 	once.Do(func() {
-		Reg(&compTestSys{})
+		RegSystem(&compTestSys{})
 	})
 	e := &compTest{}
 	e.SetDomain(e, e)
@@ -72,7 +76,7 @@ func TestES_Awake(t *testing.T) {
 //PASS
 func BenchmarkAwake(b *testing.B) {
 	once.Do(func() {
-		Reg(&compTestSys{})
+		RegSystem(&compTestSys{})
 	})
 	b.Run("1", func(b *testing.B) {
 		e := &compTest{}
@@ -93,5 +97,12 @@ func BenchmarkAwake(b *testing.B) {
 			SystemProcessor.Awake(e, p)
 		}
 		b.ReportAllocs()
+	})
+}
+
+func TestBaseEntity_AddToComponent(t *testing.T) {
+	once.Do(func() {
+		RegSystem(&compTestSys{})
+		RegEntity(&compTest{})
 	})
 }
