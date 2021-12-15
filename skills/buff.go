@@ -1,5 +1,21 @@
 package skills
 
+type CharacterControlState int8
+
+const (
+	CharacterControlStateNone CharacterControlState = 1 << iota
+	// CharacterControlStateMove 移动
+	CharacterControlStateMove
+	// CharacterControlStateRotate 转身
+	CharacterControlStateRotate
+	// CharacterControlStateCastSkill 技能使用
+	CharacterControlStateCastSkill
+	//// CharacterControlStateSkillCast1 瞬发技能
+	//CharacterControlStateSkillCast1
+	//// CharacterControlStateSkillCast2 吟唱技能
+	//CharacterControlStateSkillCast2
+)
+
 type BuffModel struct {
 	// 数据id
 	Id uint32
@@ -10,7 +26,7 @@ type BuffModel struct {
 	// tick间隔 单位毫秒
 	TickInterval int32
 	// 对于持有者的状态影响
-	CarrierState int32
+	CarrierState CharacterControlState
 
 	// todo 考虑buff本身对属性的基本修改 不要每次都走回调？
 
