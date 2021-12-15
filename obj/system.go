@@ -76,6 +76,18 @@ func (p *Processor) Register(entity Entity, register bool) {
 	}
 }
 
+func (p *Processor) Destroy(entity Entity) {
+	l, ok := p.types[entity.EntityTypeId()]
+	if !ok {
+		return
+	}
+	for _, v := range l {
+		if v.BaseSystemId() == types.EntityTypeSystemDestroy {
+			v.(destroyInter).Destroy(entity)
+		}
+	}
+}
+
 func (p *Processor) Awake(entity Entity, param interface{}) {
 	l, ok := p.types[entity.EntityTypeId()]
 	if !ok {
