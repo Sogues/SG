@@ -5,7 +5,9 @@ type EffectNode struct {
 	Elapsed int64
 
 	// 效果逻辑
-	Handle func()
+	Handle func(effect *Effect, params []int32)
+
+	Params []int32
 }
 
 type EffectModel struct {
@@ -24,6 +26,8 @@ type Effect struct {
 
 	// 流逝时间
 	Elapsed int64
+
+	Skill *Skill
 
 	// 参数相关 先有这个东西 怎么实现再说吧
 	//TODO 是否准备个struct方便策划 或者键值对直接使用 但是键值对无论性能还是内存都很拉

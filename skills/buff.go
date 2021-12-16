@@ -8,7 +8,7 @@ type (
 	// OnTick tick帧的回调点
 	OnTick func(buff *Buff)
 	// OnSkillCast 释放技能时回调
-	OnSkillCast func(buff *Buff, skill *Skill, effect *Effect)
+	OnSkillCast func(buff *Buff, skill *Skill, effect *Effect) *Effect
 	// OnHit 命中时候的回调
 	OnHit func(buff *Buff, stream *DamageStream, target Player)
 	// OnBeHurt 被命中时候 受到攻击时候 受到伤害时候

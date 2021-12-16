@@ -6,7 +6,7 @@ type SkillModel struct {
 	// 条件以及消耗先设计成函数便于扩展
 	// 比如传送技能 普通传送+小飞鞋
 
-	Condition func()
+	Condition func() bool
 
 	Cost func()
 
