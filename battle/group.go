@@ -4,7 +4,7 @@ type Group struct {
 	timelines []TimelineObj
 }
 
-func (g *Group) FixedUpdate(interval float64) {
+func (g *Group) TimelineTick(interval float64) {
 	if len(g.timelines) <= 0 {
 		return
 	}
