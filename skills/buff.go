@@ -29,7 +29,7 @@ type BuffModel struct {
 	// 最大层数
 	MaxStack uint32
 
-	// tick间隔 单位毫秒
+	// tick间隔 单位毫秒 0就不执行tick
 	TickInterval int32
 
 	// 对于持有者的状态影响
@@ -38,6 +38,9 @@ type BuffModel struct {
 	// todo 考虑buff本身对属性的基本修改 不要每次都走回调？
 
 	// 不走接口因为需要方便buff效果的自由组装
+
+	// 来点注释 方便日志调试
+	Comment string
 
 	OnOccur OnOccur
 
@@ -57,7 +60,7 @@ type BuffModel struct {
 }
 
 type Buff struct {
-	Model *BuffModel
+	Model BuffModel
 
 	// 剩余毫秒
 	Duration int64

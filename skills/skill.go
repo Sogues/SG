@@ -10,11 +10,11 @@ type SkillModel struct {
 
 	Cost func()
 
-	Effect *EffectModel
+	Effect EffectModel
 }
 
 type Skill struct {
-	Model *SkillModel
+	Model SkillModel
 
 	Level uint32
 

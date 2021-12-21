@@ -15,3 +15,8 @@ const (
 	//// CharacterControlStateSkillCast2 吟唱技能
 	//CharacterControlStateSkillCast2
 )
+
+type (
+	Vec2d [2]uint32
+	Vec3d [3]uint32
+)

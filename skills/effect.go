@@ -11,13 +11,13 @@ type EffectNode struct {
 }
 
 type EffectModel struct {
-	Nodes []*EffectNode
+	Nodes []EffectNode
 	// 总计时长 Nodes[-1].Elapsed <= Duration
 	Duration int64
 }
 
 type Effect struct {
-	Model *EffectModel
+	Model EffectModel
 
 	Caster Player
 
