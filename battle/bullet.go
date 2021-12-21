@@ -49,14 +49,15 @@ type (
 		hitAlly bool
 	}
 
-	BulletHitRecord struct {
+	SBulletHitRecord struct {
 		target GameObject
 
 		//多久之后还能再次命中，单位秒
 		timeToCanHit float64
 	}
+	BulletHitRecord *SBulletHitRecord
 
-	BulletLauncher struct {
+	SBulletLauncher struct {
 		module BulletModel
 
 		caster GameObject
@@ -85,4 +86,5 @@ type (
 		//子弹的一些特殊逻辑使用的参数，可以在创建子的时候传递给子弹
 		param []object
 	}
+	BulletLauncher *SBulletLauncher
 )

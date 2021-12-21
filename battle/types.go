@@ -4,6 +4,7 @@ package battle
 
 type (
 	GameObject interface {
+		GetChaState()
 	}
 	object interface {
 	}

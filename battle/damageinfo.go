@@ -7,7 +7,7 @@ type (
 		mental    int
 	}
 
-	DamageInfo struct {
+	SDamageInfo struct {
 		attacker GameObject
 
 		defender GameObject
@@ -26,4 +26,5 @@ type (
 
 		addBuffs map[*AddBuffInfo]struct{}
 	}
+	DamageInfo *SDamageInfo
 )

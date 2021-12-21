@@ -3,6 +3,24 @@ package battle
 // todo
 
 type (
-	SkillObj struct {
+	SkillModel struct {
+		id string
+
+		condition ChaResource
+
+		cost ChaResource
+
+		effect TimelineModel
+
+		buff []AddBuffInfo
 	}
+
+	SSkillObj struct {
+		model SkillModel
+
+		level int
+
+		coolDown float64
+	}
+	SkillObj *SSkillObj
 )
