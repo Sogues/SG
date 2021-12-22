@@ -10,7 +10,7 @@ type (
 	AoeOnBulletLeave    func(aoe GameObject, bullet map[GameObject]struct{})
 	//aoe 要执行的aoeObj
 	//t 这个tween在aoe中运行了多久了，单位：秒
-	AoeTween func(aoe GameObject, t float64) AoeMoveInfo
+	AoeTween func(aoe GameObject, t float64) *AoeMoveInfo
 
 	AoeModel struct {
 		id string
@@ -47,7 +47,7 @@ type (
 		onBulletLeaveParams []object
 	}
 
-	SAoeMoveInfo struct {
+	AoeMoveInfo struct {
 		moveType MoveType
 
 		velocity Vector3
@@ -55,9 +55,8 @@ type (
 		//aoe的角度变成这个值
 		rotateToDegree float64
 	}
-	AoeMoveInfo *SAoeMoveInfo
 
-	SAoeLauncher struct {
+	AoeLauncher struct {
 		model AoeModel
 
 		//释放的中心坐标
@@ -80,5 +79,4 @@ type (
 		//aoe的传入参数，比如可以吸收次数之类的
 		param map[string]object
 	}
-	AoeLauncher *SAoeLauncher
 )

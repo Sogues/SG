@@ -3,7 +3,7 @@ package battle
 // todo
 
 type (
-	TimelineEvent func(timeline TimelineObj, args []object)
+	TimelineEvent func(timeline *TimelineObj, args []object)
 
 	TimelineNode struct {
 		timeElapsed float64
@@ -31,7 +31,7 @@ type (
 		chargeGoBack TimelineGoTo
 	}
 
-	STimelineObj struct {
+	TimelineObj struct {
 		model TimelineModel
 
 		caster GameObject
@@ -46,5 +46,4 @@ type (
 
 		values map[string]object
 	}
-	TimelineObj *STimelineObj
 )

@@ -1,14 +1,16 @@
 package battle
 
 type Group struct {
-	timelines []TimelineObj
+	timelines   []*TimelineObj
+	damagesInfo []*DamageInfo
 }
 
 func (g *Group) TimelineTick(interval float64) {
-	if len(g.timelines) <= 0 {
+	ori := len(g.timelines)
+
+	if ori <= 0 {
 		return
 	}
-	ori := len(g.timelines)
 
 	for idx := 0; idx < ori; {
 		wasTimeElapsed := g.timelines[idx].timeElapsed
@@ -36,4 +38,44 @@ func (g *Group) TimelineTick(interval float64) {
 			idx++
 		}
 	}
+}
+
+func (g *Group) DamageInfoTick(interval float64) {
+	ori := len(g.damagesInfo)
+	if 0 == ori {
+		return
+	}
+}
+
+func (g *Group) DealWithDamage(dInfo *DamageInfo) {
+	if nil == dInfo.defender {
+		return
+	}
+	defenderChaState := dInfo.defender.GetChaState()
+	if nil == defenderChaState {
+		return
+	}
+
+	var attackerChaState *ChaState
+
+	if defenderChaState.dead {
+		return
+	}
+	if nil != dInfo.attacker {
+		attackerChaState = dInfo.attacker.GetChaState()
+		if nil != attackerChaState {
+			for i := range attackerChaState.buffs {
+				if nil != attackerChaState.buffs[i].model.onHit {
+					attackerChaState.buffs[i].model.onHit(attackerChaState.buffs[i], dInfo, dInfo.defender)
+				}
+			}
+		}
+	}
+
+	for i := range defenderChaState.buffs {
+		if nil != defenderChaState.buffs[i].model.onBeHurt {
+			defenderChaState.buffs[i].model.onBeHurt(defenderChaState.buffs[i], dInfo, dInfo.attacker)
+		}
+	}
+	//defenderChaState.CanBeKilledByDamageInfo()
 }

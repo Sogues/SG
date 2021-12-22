@@ -19,12 +19,11 @@ type (
 		moveType MoveType
 	}
 
-	SChaResource struct {
+	ChaResource struct {
 		hp int
 
 		ammo int
 
 		stamina int
 	}
-	ChaResource *SChaResource
 )

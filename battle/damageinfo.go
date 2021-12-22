@@ -7,7 +7,7 @@ type (
 		mental    int
 	}
 
-	SDamageInfo struct {
+	DamageInfo struct {
 		attacker GameObject
 
 		defender GameObject
@@ -26,5 +26,13 @@ type (
 
 		addBuffs map[*AddBuffInfo]struct{}
 	}
-	DamageInfo *SDamageInfo
 )
+
+func (d *DamageInfo) IsHeal() bool {
+	for _, v := range d.tags {
+		if v == directHeal || v == periodHeal {
+			return true
+		}
+	}
+	return false
+}

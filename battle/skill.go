@@ -6,21 +6,20 @@ type (
 	SkillModel struct {
 		id string
 
-		condition ChaResource
+		condition *ChaResource
 
-		cost ChaResource
+		cost *ChaResource
 
 		effect TimelineModel
 
 		buff []AddBuffInfo
 	}
 
-	SSkillObj struct {
+	SkillObj struct {
 		model SkillModel
 
 		level int
 
 		coolDown float64
 	}
-	SkillObj *SSkillObj
 )

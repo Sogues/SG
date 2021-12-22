@@ -1,14 +1,14 @@
 package battle
 
 type (
-	BuffOnOccur    func(buff BuffObj, modifyStack int)
-	BuffOnRemoved  func(buff BuffObj)
-	BuffOnTick     func(buff BuffObj)
-	BuffOnHit      func(buff BuffObj, damageInfo DamageInfo, target GameObject)
-	BuffOnBeHurt   func(buff BuffObj, damageInfo DamageInfo, attacker GameObject)
-	BuffOnKill     func(buff BuffObj, damageInfo DamageInfo, target GameObject)
-	BuffOnBeKilled func(buff BuffObj, damageInfo DamageInfo, attacker GameObject)
-	BuffOnCast     func(buff BuffObj, skill SkillObj, timeline TimelineObj)
+	BuffOnOccur    func(buff *BuffObj, modifyStack int)
+	BuffOnRemoved  func(buff *BuffObj)
+	BuffOnTick     func(buff *BuffObj)
+	BuffOnHit      func(buff *BuffObj, damageInfo *DamageInfo, target GameObject)
+	BuffOnBeHurt   func(buff *BuffObj, damageInfo *DamageInfo, attacker GameObject)
+	BuffOnKill     func(buff *BuffObj, damageInfo *DamageInfo, target GameObject)
+	BuffOnBeKilled func(buff *BuffObj, damageInfo *DamageInfo, attacker GameObject)
+	BuffOnCast     func(buff *BuffObj, skill *SkillObj, timeline *TimelineObj)
 
 	BuffModel struct {
 		id string
@@ -52,7 +52,7 @@ type (
 		onBeKilledParams []object
 	}
 
-	SBuffObj struct {
+	BuffObj struct {
 		model BuffModel
 
 		duration float64
@@ -71,7 +71,6 @@ type (
 
 		buffParam map[string]object
 	}
-	BuffObj *SBuffObj
 
 	AddBuffInfo struct {
 		caster GameObject
