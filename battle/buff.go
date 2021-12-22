@@ -94,3 +94,35 @@ type (
 		buffParam map[string]object
 	}
 )
+
+func NewBuffObj(
+	model BuffModel,
+	duration float64,
+
+	permanent bool,
+
+	stack int,
+
+	caster GameObject,
+
+	carrier GameObject,
+
+	buffParam map[string]object,
+) *BuffObj {
+	b := &BuffObj{
+		model:     model,
+		duration:  duration,
+		permanent: permanent,
+		stack:     stack,
+		caster:    caster,
+		carrier:   carrier,
+		buffParam: nil,
+	}
+	if 0 != len(buffParam) {
+		b.buffParam = map[string]object{}
+		for k, v := range buffParam {
+			b.buffParam[k] = v
+		}
+	}
+	return b
+}

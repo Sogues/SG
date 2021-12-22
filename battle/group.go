@@ -1,5 +1,7 @@
 package battle
 
+import "fmt"
+
 type Group struct {
 	timelines   []*TimelineObj
 	damagesInfo []*DamageInfo
@@ -66,7 +68,9 @@ func (g *Group) DealWithDamage(dInfo *DamageInfo) {
 		if nil != attackerChaState {
 			for i := range attackerChaState.buffs {
 				if nil != attackerChaState.buffs[i].model.onHit {
-					attackerChaState.buffs[i].model.onHit(attackerChaState.buffs[i], dInfo, dInfo.defender)
+					attackerChaState.buffs[i].model.onHit(
+						attackerChaState.buffs[i], dInfo, dInfo.defender,
+					)
 				}
 			}
 		}
@@ -74,8 +78,50 @@ func (g *Group) DealWithDamage(dInfo *DamageInfo) {
 
 	for i := range defenderChaState.buffs {
 		if nil != defenderChaState.buffs[i].model.onBeHurt {
-			defenderChaState.buffs[i].model.onBeHurt(defenderChaState.buffs[i], dInfo, dInfo.attacker)
+			defenderChaState.buffs[i].model.onBeHurt(
+				defenderChaState.buffs[i], dInfo, dInfo.attacker,
+			)
 		}
 	}
-	//defenderChaState.CanBeKilledByDamageInfo()
+	if defenderChaState.CanBeKilledByDamageInfo(dInfo) {
+		if nil != attackerChaState {
+			for i := range attackerChaState.buffs {
+				if nil != attackerChaState.buffs[i].model.onKill {
+					attackerChaState.buffs[i].model.onKill(
+						attackerChaState.buffs[i], dInfo, dInfo.defender,
+					)
+				}
+			}
+		}
+		for i := range defenderChaState.buffs {
+			if nil != defenderChaState.buffs[i].model.onKill {
+				defenderChaState.buffs[i].model.onKill(
+					defenderChaState.buffs[i], dInfo, dInfo.attacker,
+				)
+			}
+		}
+	}
+
+	isHeal := dInfo.IsHeal()
+	dval := dInfo.DamageValue(isHeal)
+	if isHeal || defenderChaState.immuneTime <= 0 {
+		defenderChaState.ModResource(&ChaResource{
+			hp:      -dval,
+			ammo:    0,
+			stamina: 0,
+		})
+
+		fmt.Printf("hp modify %v\n", dval)
+	}
+	for i := range dInfo.addBuffs {
+		toCha := dInfo.addBuffs[i].target
+		var toChaState *ChaState
+		if toCha == dInfo.attacker {
+			toChaState = attackerChaState
+		} else {
+			toChaState = defenderChaState
+		}
+		if nil != toChaState && !toChaState.dead {
+		}
+	}
 }

@@ -24,7 +24,7 @@ type (
 		//潘森抵抗正面的伤害
 		degree float64
 
-		addBuffs map[*AddBuffInfo]struct{}
+		addBuffs []*AddBuffInfo
 	}
 )
 
@@ -35,4 +35,10 @@ func (d *DamageInfo) IsHeal() bool {
 		}
 	}
 	return false
+}
+
+func (d *DamageInfo) DamageValue(asHeal bool) int {
+	// todo 只计算一次 每次计算后加入缓存
+	// 后续找个数值给点方案
+	return 10
 }
