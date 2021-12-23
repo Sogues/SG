@@ -27,3 +27,11 @@ type (
 		stamina int
 	}
 )
+
+func (c *ChaResource) Enough(requirement *ChaResource) bool {
+	if nil == requirement {
+		return true
+	}
+	// todo
+	return true
+}

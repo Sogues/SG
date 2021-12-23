@@ -7,3 +7,7 @@ type ChaControlState struct {
 
 	canUseSkill bool
 }
+
+var (
+	ChaControlStateOrigin = ChaControlState{true, true, true}
+)

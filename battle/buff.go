@@ -1,5 +1,37 @@
 package battle
 
+func NewBuffObj(
+	model BuffModel,
+	duration float64,
+
+	permanent bool,
+
+	stack int,
+
+	caster GameObject,
+
+	carrier GameObject,
+
+	buffParam map[string]object,
+) *BuffObj {
+	b := &BuffObj{
+		model:     model,
+		duration:  duration,
+		permanent: permanent,
+		stack:     stack,
+		caster:    caster,
+		carrier:   carrier,
+		buffParam: nil,
+	}
+	if 0 != len(buffParam) {
+		b.buffParam = map[string]object{}
+		for k, v := range buffParam {
+			b.buffParam[k] = v
+		}
+	}
+	return b
+}
+
 type (
 	BuffOnOccur    func(buff *BuffObj, modifyStack int)
 	BuffOnRemoved  func(buff *BuffObj)
@@ -8,7 +40,7 @@ type (
 	BuffOnBeHurt   func(buff *BuffObj, damageInfo *DamageInfo, attacker GameObject)
 	BuffOnKill     func(buff *BuffObj, damageInfo *DamageInfo, target GameObject)
 	BuffOnBeKilled func(buff *BuffObj, damageInfo *DamageInfo, attacker GameObject)
-	BuffOnCast     func(buff *BuffObj, skill *SkillObj, timeline *TimelineObj)
+	BuffOnCast     func(buff *BuffObj, skill *SkillObj, timeline *TimelineObj) *TimelineObj
 
 	BuffModel struct {
 		id string
@@ -67,6 +99,8 @@ type (
 
 		timeElapsed float64
 
+		tickTimeElapsed float64
+
 		ticked int
 
 		buffParam map[string]object
@@ -94,35 +128,3 @@ type (
 		buffParam map[string]object
 	}
 )
-
-func NewBuffObj(
-	model BuffModel,
-	duration float64,
-
-	permanent bool,
-
-	stack int,
-
-	caster GameObject,
-
-	carrier GameObject,
-
-	buffParam map[string]object,
-) *BuffObj {
-	b := &BuffObj{
-		model:     model,
-		duration:  duration,
-		permanent: permanent,
-		stack:     stack,
-		caster:    caster,
-		carrier:   carrier,
-		buffParam: nil,
-	}
-	if 0 != len(buffParam) {
-		b.buffParam = map[string]object{}
-		for k, v := range buffParam {
-			b.buffParam[k] = v
-		}
-	}
-	return b
-}

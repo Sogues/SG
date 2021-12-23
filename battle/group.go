@@ -2,9 +2,34 @@ package battle
 
 import "fmt"
 
+var scene = &Group{}
+
 type Group struct {
-	timelines   []*TimelineObj
+	timelines   []*TimelineObj // 每个人只能存在一调timeline
 	damagesInfo []*DamageInfo
+	objs        []GameObject
+}
+
+func (g *Group) GameObjectTick(interval float64) {
+	for _, v := range g.objs {
+		v.GetChaState().Tick(interval)
+	}
+}
+
+func (g *Group) AddTimeline(timeline *TimelineObj) {
+	if nil != timeline.caster && g.CasterHasTimeline(timeline.caster) {
+		return
+	}
+	g.timelines = append(g.timelines, timeline)
+}
+
+func (g *Group) CasterHasTimeline(caster GameObject) bool {
+	for _, v := range g.timelines {
+		if caster == v.caster {
+			return true
+		}
+	}
+	return false
 }
 
 func (g *Group) TimelineTick(interval float64) {
@@ -47,6 +72,10 @@ func (g *Group) DamageInfoTick(interval float64) {
 	if 0 == ori {
 		return
 	}
+	for _, v := range g.damagesInfo {
+		g.DealWithDamage(v)
+	}
+	g.damagesInfo = nil
 }
 
 func (g *Group) DealWithDamage(dInfo *DamageInfo) {
@@ -122,6 +151,7 @@ func (g *Group) DealWithDamage(dInfo *DamageInfo) {
 			toChaState = defenderChaState
 		}
 		if nil != toChaState && !toChaState.dead {
+			toChaState.AddBuff(dInfo.addBuffs[i])
 		}
 	}
 }

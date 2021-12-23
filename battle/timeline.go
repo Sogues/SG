@@ -2,6 +2,64 @@ package battle
 
 // todo
 
+func NewTimelineObj(
+	model TimelineModel,
+
+	caster GameObject,
+	param object,
+
+) *TimelineObj {
+	t := &TimelineObj{
+		model:     model,
+		caster:    caster,
+		timeScale: 1,
+		param:     param,
+		values:    nil,
+	}
+	if nil != caster {
+		cs := caster.GetChaState()
+		if nil != cs {
+			t.values = map[string]object{}
+			t.values["faceDegree"] = cs.faceDegree
+			t.values["moveDegree"] = cs.moveDegree
+			t.setTimeScale(cs.actionSpeed)
+		}
+	}
+	return t
+}
+
+func NewTimelineMode(
+	id string,
+	nodes []TimelineNode,
+
+	//Timeline一共多长时间（到时间了就丢掉了），单位秒
+	duration float64,
+
+	chargeGoBack TimelineGoTo,
+) TimelineModel {
+	t := TimelineModel{
+		id:           id,
+		nodes:        nodes,
+		duration:     duration,
+		chargeGoBack: chargeGoBack,
+	}
+	return t
+}
+
+func NewTimelineNode(
+	timeElapsed float64,
+
+	doEvent TimelineEvent,
+	eveParams []object,
+) TimelineNode {
+	t := TimelineNode{
+		timeElapsed: timeElapsed,
+		doEvent:     doEvent,
+		eveParams:   eveParams,
+	}
+	return t
+}
+
 type (
 	TimelineEvent func(timeline *TimelineObj, args []object)
 
@@ -47,3 +105,10 @@ type (
 		values map[string]object
 	}
 )
+
+func (t *TimelineObj) setTimeScale(timeScale float64) {
+	if timeScale < 0.1 {
+		timeScale = 0.1
+	}
+	t.timeScale = timeScale
+}

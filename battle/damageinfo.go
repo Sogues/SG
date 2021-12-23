@@ -2,6 +2,7 @@ package battle
 
 type (
 	Damage struct {
+		hp        int
 		bullet    int
 		explosion int
 		mental    int
@@ -24,7 +25,7 @@ type (
 		//潘森抵抗正面的伤害
 		degree float64
 
-		addBuffs []*AddBuffInfo
+		addBuffs []AddBuffInfo
 	}
 )
 
@@ -40,5 +41,5 @@ func (d *DamageInfo) IsHeal() bool {
 func (d *DamageInfo) DamageValue(asHeal bool) int {
 	// todo 只计算一次 每次计算后加入缓存
 	// 后续找个数值给点方案
-	return 10
+	return 1
 }
