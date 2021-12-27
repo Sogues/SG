@@ -10,6 +10,10 @@ type Group struct {
 	objs        []GameObject
 }
 
+func (g *Group) CreateGameObject(gameObject GameObject) {
+	g.objs = append(g.objs, gameObject)
+}
+
 func (g *Group) GameObjectTick(interval float64) {
 	for _, v := range g.objs {
 		v.GetChaState().Tick(interval)
