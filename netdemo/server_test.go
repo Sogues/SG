@@ -1,9 +1,16 @@
 package netdemo
 
 import (
+	"encoding/binary"
+	"errors"
 	"fmt"
+	"io"
 	"net"
 	"testing"
+
+	"github.com/golang/protobuf/proto"
+
+	"github.com/Sogues/SG/netdemo/proto/proto_csmsg"
 )
 
 func TestEchoServer(t *testing.T) {
@@ -27,16 +34,40 @@ func TestEchoServer(t *testing.T) {
 		select {
 		case conn := <-connChan:
 			go func() {
-				var bt [1024]byte
 				for {
-					l, err := conn.Read(bt[:])
+					err := func() error {
+						var msgLen [4]byte
+						_, err := io.ReadFull(conn, msgLen[:])
+						if nil != err {
+							return err
+						}
+						size := binary.BigEndian.Uint32(msgLen[:])
+						if size < 12 || size > 1<<16 {
+							return errors.New(fmt.Sprintf("size %v", size))
+						}
+						arr := make([]byte, size-4)
+						_, err = io.ReadFull(conn, arr[:])
+						if nil != err {
+							return err
+						}
+						cmdId := binary.BigEndian.Uint32(arr[:])
+						switch cmdId {
+						case uint32(proto_csmsg.MSG_ID_MSG_ID_CS_Login):
+							msg := &proto_csmsg.CS_Login{}
+							err = proto.UnmarshalMerge(arr[8:], msg)
+							if nil != err {
+								return err
+							}
+							fmt.Println(conn.RemoteAddr(), "receive", msg)
+							conn.Write(append(msgLen[:], arr...))
+						}
+						return nil
+					}()
 					if nil != err {
-						fmt.Println(conn.RemoteAddr(), err)
+						fmt.Println(conn.RemoteAddr(), "close", err)
 						conn.Close()
 						return
 					}
-					fmt.Println("receive from", conn.RemoteAddr(), string(bt[:l]))
-					conn.Write(bt[:l])
 				}
 			}()
 		}
