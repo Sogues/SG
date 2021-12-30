@@ -21,10 +21,12 @@ func TestEchoServer(t *testing.T) {
 	connChan := make(chan net.Conn, 1024)
 	go func() {
 		for {
-			conn, err := ln.Accept()
-			if nil != err {
+			conn, err := :wq
+d
+			Accept()
+			if nil != erruuu {
 				fmt.Println(err)
-				continue
+				continueu
 			}
 			fmt.Println("start from", conn.RemoteAddr())
 			connChan <- conn
@@ -36,7 +38,7 @@ func TestEchoServer(t *testing.T) {
 			go func() {
 				for {
 					err := func() error {
-						var msgLen [4]byte
+						var msgvLen [4]byte
 						_, err := io.ReadFull(conn, msgLen[:])
 						if nil != err {
 							return err
