@@ -1,6 +1,8 @@
 package SGTime
 
-import "time"
+import (
+	"time"
+)
 
 const (
 	ticksPerMicro int64 = 10
@@ -20,12 +22,19 @@ type (
 		ticks int64
 	}
 	SGTime struct {
-		accElpTime spanTime
+		accElpTime          spanTime
+		accFrameCountPerSec int64
 
 		totalTime spanTime
 		eplTime   spanTime
 
-		isRunningSlowly bool
+		frameCount   int64
+		timePerFrame spanTime
+
+		isRunningSlowly       bool
+		incrementFrameCount   bool
+		framePerSecondUpdated bool
+		framePerSec           int64
 	}
 	SGTick struct {
 		startNano int64
@@ -49,6 +58,30 @@ type (
 		tick       *SGTick
 	}
 )
+
+func (t *SGTime) Update(totalTime, elpTime, elpUpdateTime spanTime, isRunningSlowly, incrementFrameCount bool) {
+	t.totalTime = totalTime
+	t.eplTime = elpTime
+	t.isRunningSlowly = isRunningSlowly
+	t.framePerSecondUpdated = false
+	if incrementFrameCount {
+		t.accElpTime = t.accElpTime.Add(elpTime)
+		accElpInSec := t.accElpTime.ToSec()
+		if t.accFrameCountPerSec > 0 && accElpInSec > 1 {
+			t.timePerFrame = spanTime{t.accElpTime.ticks / t.accFrameCountPerSec}
+			t.framePerSec = t.accFrameCountPerSec / accElpInSec
+			t.accFrameCountPerSec = 0
+			t.accElpTime = spTimeZero
+			t.framePerSecondUpdated = true
+		}
+		t.accFrameCountPerSec++
+		t.frameCount++
+	}
+}
+
+func (t *SGTime) Reset(totalTime spanTime) {
+	t.Update(totalTime, spTimeZero, spTimeZero, false, false)
+}
 
 func (f *FixedUpdate) Tick() {
 	f.tick.Tick()
