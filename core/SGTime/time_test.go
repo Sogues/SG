@@ -41,3 +41,30 @@ func TestTimeUnix(t *testing.T) {
 		fmt.Println(b.UnixNano() - a)
 	})
 }
+
+func TestNewFixedUpdate(t *testing.T) {
+	t.Run("1", func(t *testing.T) {
+		f := NewFixedUpdate(30)
+		last := time.Now().UnixNano()
+		f.UpdateCallback = func() {
+			now := time.Now().UnixNano()
+			fmt.Println(now-last, time.Duration(now-last))
+			last = now
+		}
+		for {
+			f.Tick()
+		}
+	})
+	t.Run("2", func(t *testing.T) {
+		tk := time.NewTicker(time.Millisecond * 30)
+		last := time.Now().UnixNano()
+		for {
+			select {
+			case <-tk.C:
+				now := time.Now().UnixNano()
+				fmt.Println(now-last, time.Duration(now-last))
+				last = now
+			}
+		}
+	})
+}

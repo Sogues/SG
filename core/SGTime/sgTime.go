@@ -72,8 +72,26 @@ type (
 		TargetElapsedTime spanTime
 
 		UpdateCallback func()
+
+		FixedUpdateTargetFPS int64
 	}
 )
+
+func NewFixedUpdate(fixedUpdateTargetFPS int64) *FixedUpdate {
+	f := &FixedUpdate{}
+	f.FixedUpdateTargetFPS = fixedUpdateTargetFPS
+	f.updateTime = SGTime{}
+	f.playTimer = NewSGTick()
+	f.updateTimer = NewSGTick()
+	f.timer = NewSGTick()
+	f.maximumElapsedTime = spanTime{500 * ticksPerMill}
+	f.TargetElapsedTime = spanTime{ticksPerSec / fixedUpdateTargetFPS}
+	f.lastUpdateCount = make([]int64, 4)
+	f.nextLastUpdateCountIndex = 0
+	//(2 * 2 + (4 - 2)) / 4 = 1.5f
+	f.updateCountAverageSlowLimit = 1500
+	return f
+}
 
 func (f *FixedUpdate) Tick() {
 	f.timer.Tick()
@@ -207,6 +225,12 @@ func (s spanTime) LTZero() bool {
 
 func (s spanTime) GreatThan(r spanTime) bool {
 	return s.ticks > r.ticks
+}
+
+func NewSGTick() *SGTick {
+	t := &SGTick{}
+	t.Reset()
+	return t
 }
 
 func (t *SGTick) Reset() {
