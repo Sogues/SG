@@ -1,6 +1,7 @@
 package SGTime
 
 import (
+	"fmt"
 	"time"
 )
 
@@ -53,11 +54,105 @@ type (
 	FixedUpdate struct {
 		updateTime SGTime
 
-		playTick   *SGTick
-		updateTick *SGTick
-		tick       *SGTick
+		playTimer                   *SGTick
+		updateTimer                 *SGTick
+		timer                       *SGTick
+		lastUpdateCount             []int64
+		updateCountAverageSlowLimit int64
+
+		singleFrameUpdateTime      spanTime
+		totalUpdateTime            spanTime
+		maximumElapsedTime         spanTime
+		accumulatedElapsedGameTime spanTime
+		lastFrameElapsedGameTime   spanTime
+		nextLastUpdateCountIndex   int64
+		drawRunningSlowly          bool
+		forceElapsedTimeToZero     bool
+
+		TargetElapsedTime spanTime
+
+		UpdateCallback func()
 	}
 )
+
+func (f *FixedUpdate) Tick() {
+	f.timer.Tick()
+	f.playTimer.Tick()
+	f.updateTimer.Reset()
+	elpAdjustedTime := f.timer.elpWithPause
+	if f.forceElapsedTimeToZero {
+		elpAdjustedTime = spTimeZero
+		f.forceElapsedTimeToZero = false
+	}
+
+	if elpAdjustedTime.GreatThan(f.maximumElapsedTime) {
+		elpAdjustedTime = f.maximumElapsedTime
+	}
+	updateCount := int64(1)
+	if elpAdjustedTime.ticks > f.TargetElapsedTime.ticks {
+		if elpAdjustedTime.ticks-f.TargetElapsedTime.ticks < f.TargetElapsedTime.ticks>>6 {
+			elpAdjustedTime = f.TargetElapsedTime
+		}
+	} else {
+		if f.TargetElapsedTime.ticks-elpAdjustedTime.ticks < f.TargetElapsedTime.ticks>>6 {
+			elpAdjustedTime = f.TargetElapsedTime
+		}
+	}
+	f.accumulatedElapsedGameTime = f.accumulatedElapsedGameTime.Add(elpAdjustedTime)
+
+	updateCount = f.accumulatedElapsedGameTime.ticks / f.TargetElapsedTime.ticks
+
+	if 0 == updateCount {
+		return
+	}
+	f.lastUpdateCount[f.nextLastUpdateCountIndex] = updateCount
+
+	var updateCountMean int64
+	for _, v := range f.lastUpdateCount {
+		updateCountMean += v
+	}
+
+	updateCountMean = updateCountMean * 100 / int64(len(f.lastUpdateCount))
+
+	f.nextLastUpdateCountIndex = (f.nextLastUpdateCountIndex + 1) % int64(len(f.lastUpdateCount))
+
+	f.drawRunningSlowly = updateCountMean > f.updateCountAverageSlowLimit
+
+	f.accumulatedElapsedGameTime = spanTime{f.accumulatedElapsedGameTime.ticks - (updateCount * f.TargetElapsedTime.ticks)}
+	singleFrameEplTime := f.TargetElapsedTime
+
+	for f.lastFrameElapsedGameTime = spTimeZero; updateCount > 0; updateCount-- {
+		f.updateTime.Update(
+			f.totalUpdateTime,
+			singleFrameEplTime,
+			f.singleFrameUpdateTime,
+			f.drawRunningSlowly,
+			true,
+		)
+		f.UpdateAndProfile(f.updateTime)
+		f.lastFrameElapsedGameTime = f.lastFrameElapsedGameTime.Add(singleFrameEplTime)
+		f.totalUpdateTime = f.totalUpdateTime.Add(singleFrameEplTime)
+
+	}
+	f.updateTimer.Tick()
+	f.singleFrameUpdateTime = spTimeZero
+}
+
+func (f *FixedUpdate) UpdateAndProfile(sgTime SGTime) {
+	defer func() {
+		if err := recover(); nil != err {
+			fmt.Println(err)
+		}
+	}()
+	f.updateTimer.Reset()
+	if nil != f.UpdateCallback {
+		f.UpdateCallback()
+	}
+	f.lastFrameElapsedGameTime = spTimeZero
+	f.updateTimer.Tick()
+	f.singleFrameUpdateTime = f.singleFrameUpdateTime.Add(f.updateTimer.elp)
+	f.lastFrameElapsedGameTime = spTimeZero
+}
 
 func (t *SGTime) Update(totalTime, elpTime, elpUpdateTime spanTime, isRunningSlowly, incrementFrameCount bool) {
 	t.totalTime = totalTime
@@ -81,12 +176,6 @@ func (t *SGTime) Update(totalTime, elpTime, elpUpdateTime spanTime, isRunningSlo
 
 func (t *SGTime) Reset(totalTime spanTime) {
 	t.Update(totalTime, spTimeZero, spTimeZero, false, false)
-}
-
-func (f *FixedUpdate) Tick() {
-	f.tick.Tick()
-	f.playTick.Tick()
-	f.updateTick.Reset()
 }
 
 func genSpanTimeFromNano(ns int64) spanTime {
@@ -114,6 +203,10 @@ func (s spanTime) Add(st spanTime) spanTime {
 
 func (s spanTime) LTZero() bool {
 	return s.ticks < 0
+}
+
+func (s spanTime) GreatThan(r spanTime) bool {
+	return s.ticks > r.ticks
 }
 
 func (t *SGTick) Reset() {
