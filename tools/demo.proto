@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option go_package = "proto/proto_csmsg";
+
+package proto_csmsg;
+
+enum MSG_ID {
+    MSG_ID_CS_None = 0;
+    MSG_ID_CS_Login = 10001;
+    MSG_ID_SC_LogIn = 10002;
+}
+// MSG_ID_CS_Login = 10001;
+message CS_Login {
+    string account = 1;
+}
+
+// MSG_ID_SC_LogIn = 10002;
+message SC_login {
+}
