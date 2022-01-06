@@ -55,6 +55,19 @@ func TestNewFixedUpdate(t *testing.T) {
 			f.Tick()
 		}
 	})
+	t.Run("1.1", func(t *testing.T) {
+		f := NewFixedUpdate(30)
+		last := time.Now().UnixNano()
+		f.UpdateCallback = func() {
+			now := time.Now().UnixNano()
+			fmt.Println(now-last, time.Duration(now-last))
+			last = now
+		}
+		f.Tick()
+		fmt.Println("=====")
+		time.Sleep(time.Second)
+		f.Tick()
+	})
 	t.Run("2", func(t *testing.T) {
 		tk := time.NewTicker(time.Millisecond * 30)
 		last := time.Now().UnixNano()

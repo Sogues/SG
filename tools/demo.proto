@@ -8,6 +8,8 @@ enum MSG_ID {
     MSG_ID_CS_None = 0;
     MSG_ID_CS_Login = 10001;
     MSG_ID_SC_LogIn = 10002;
+
+    MSG_ID_CS_MoveInfo = 20001;
 }
 // MSG_ID_CS_Login = 10001;
 message CS_Login {
@@ -16,4 +18,24 @@ message CS_Login {
 
 // MSG_ID_SC_LogIn = 10002;
 message SC_login {
+}
+
+// MSG_ID_CS_MoveIfo = 20001;
+message CS_MoveInfo {
+    repeated MoveInfo moveInfo = 1;
+}
+
+message InputState {
+    bool up = 1;
+    bool down = 2;
+    bool left = 3;
+    bool right = 4;
+}
+
+message MoveInfo {
+    InputState inputState = 1;
+    // s
+    int64 tm = 2;
+    // ms
+    int64 delta = 3;
 }

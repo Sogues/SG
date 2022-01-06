@@ -21,12 +21,10 @@ func TestEchoServer(t *testing.T) {
 	connChan := make(chan net.Conn, 1024)
 	go func() {
 		for {
-			conn, err := :wq
-d
-			Accept()
-			if nil != erruuu {
+			conn, err := ln.Accept()
+			if nil != err {
 				fmt.Println(err)
-				continueu
+				continue
 			}
 			fmt.Println("start from", conn.RemoteAddr())
 			connChan <- conn
@@ -38,7 +36,7 @@ d
 			go func() {
 				for {
 					err := func() error {
-						var msgvLen [4]byte
+						var msgLen [4]byte
 						_, err := io.ReadFull(conn, msgLen[:])
 						if nil != err {
 							return err
@@ -52,16 +50,33 @@ d
 						if nil != err {
 							return err
 						}
+						sendFn := func(id uint32, msg proto.Message) (out []byte) {
+							by, _ := proto.Marshal(msg)
+							size := len(by)
+							totalSize := 12 + size
+							out = make([]byte, totalSize)
+							binary.BigEndian.PutUint32(out, uint32(totalSize))
+							binary.BigEndian.PutUint32(out[4:], id)
+							copy(out[12:], by)
+							return
+						}
 						cmdId := binary.BigEndian.Uint32(arr[:])
 						switch cmdId {
 						case uint32(proto_csmsg.MSG_ID_MSG_ID_CS_Login):
-							msg := &proto_csmsg.CS_Login{}
+							//msg := &proto_csmsg.CS_Login{}
+							//err = proto.UnmarshalMerge(arr[8:], msg)
+							//if nil != err {
+							//	return err
+							//}
+							//fmt.Println(conn.RemoteAddr(), "receive", msg)
+							//conn.Write(append(msgLen[:], arr...))
+						case uint32(proto_csmsg.MSG_ID_MSG_ID_CS_MoveInfo):
+							msg := &proto_csmsg.CS_MoveInfo{}
 							err = proto.UnmarshalMerge(arr[8:], msg)
 							if nil != err {
 								return err
 							}
-							fmt.Println(conn.RemoteAddr(), "receive", msg)
-							conn.Write(append(msgLen[:], arr...))
+							conn.Write(sendFn(cmdId, msg))
 						}
 						return nil
 					}()
