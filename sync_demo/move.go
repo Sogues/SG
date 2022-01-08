@@ -6,20 +6,33 @@ import (
 
 type (
 	InputState struct {
+		r, l, f, b, s int8
 	}
 	Move struct {
 		inputState InputState
-		timestamp  float64
-		deltaTime  float64
+		timestamp  float32
+		deltaTime  float32
 	}
 
 	MoveList struct {
-		lastMoveTimestamp float64
-		moves             list.List
+		lastMoveTimestamp float32
+		moves             *list.List
 	}
 )
 
-func (m *MoveList) GetLastMoveTimestamp() float64 { return m.lastMoveTimestamp }
+func NewMoveList() *MoveList {
+	return &MoveList{
+		moves: list.New(),
+	}
+}
+
+func (i InputState) GetH() int8 { return i.r - i.l }
+func (i InputState) GetV() int8 { return i.f - i.b }
+
+func (i InputState) GetHF() float32 { return float32(i.r - i.l) }
+func (i InputState) GetVF() float32 { return float32(i.f - i.b) }
+
+func (m *MoveList) GetLastMoveTimestamp() float32 { return m.lastMoveTimestamp }
 
 func (m *MoveList) GetLatestMove() *Move {
 	return m.moves.Back().Value.(*Move)
@@ -37,8 +50,8 @@ func (m *MoveList) GetMoveCount() int {
 	return m.moves.Len()
 }
 
-func (m *MoveList) AddMove(state InputState, inTimestamp float64) *Move {
-	var deltaTime float64
+func (m *MoveList) AddMove(state InputState, inTimestamp float32) *Move {
+	var deltaTime float32
 	if m.lastMoveTimestamp > 0 {
 		deltaTime = inTimestamp - m.lastMoveTimestamp
 	}
@@ -55,7 +68,7 @@ func (m *MoveList) AddMove(state InputState, inTimestamp float64) *Move {
 func (m *MoveList) AddMoveIfNew(inMove *Move) bool {
 	timestamp := inMove.timestamp
 	if timestamp > m.lastMoveTimestamp {
-		var deltaTime float64
+		var deltaTime float32
 		if m.lastMoveTimestamp > 0 {
 			deltaTime = timestamp - m.lastMoveTimestamp
 		}
@@ -70,7 +83,7 @@ func (m *MoveList) AddMoveIfNew(inMove *Move) bool {
 	return false
 }
 
-func (m *MoveList) RemovedProcessedMoves(inLastMoveProcessedOnServerTimestamp float64) {
+func (m *MoveList) RemovedProcessedMoves(inLastMoveProcessedOnServerTimestamp float32) {
 	for 0 != m.moves.Len() && m.moves.Front().Value.(*Move).timestamp <= inLastMoveProcessedOnServerTimestamp {
 		m.moves.Remove(m.moves.Front())
 	}
