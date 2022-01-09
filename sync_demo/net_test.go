@@ -2,6 +2,7 @@ package sync_demo
 
 import (
 	"fmt"
+	"net"
 	"testing"
 	"time"
 )
@@ -35,4 +36,20 @@ func TestNetBuffer(t *testing.T) {
 	b.bitHead = 0
 	fmt.Println(WLCM, b.readUint32())
 	fmt.Println(b.readUint64())
+}
+
+func TestDial(t *testing.T) {
+	ln, err := net.DialUDP(`udp`, nil, &net.UDPAddr{
+		IP:   net.IPv4(42, 192, 146, 173),
+		Port: 45000,
+		Zone: "",
+	})
+	if nil != err {
+		panic(err)
+	}
+	fmt.Println(ln.WriteToUDP([]byte("xxx"), &net.UDPAddr{
+		IP:   net.IPv4(42, 192, 146, 173),
+		Port: 45000,
+		Zone: "",
+	}))
 }

@@ -1,3 +1,3 @@
 
-protoc --go_out=. demo.proto
+protoc -I .  --go_out=../netdemo  demo.proto
 pause

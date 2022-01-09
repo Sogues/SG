@@ -8,22 +8,51 @@ enum MSG_ID {
     MSG_ID_CS_None = 0;
     MSG_ID_CS_Login = 10001;
     MSG_ID_SC_LogIn = 10002;
+    MSG_ID_SC_NtfLogin = 10003;
+    MSG_ID_SC_LogoutNtf = 10004;
 
-    MSG_ID_CS_MoveInfo = 20001;
+    MSG_ID_CS_SyncMove = 20002;
+    MSG_ID_SC_SyncMove = 20003;
 }
 // MSG_ID_CS_Login = 10001;
 message CS_Login {
     string account = 1;
 }
 
-// MSG_ID_SC_LogIn = 10002;
-message SC_login {
+// MSG_ID_SC_LogoutNtf = 10004;
+message SC_LogoutNtf {
+    string addr = 1;
 }
 
-// MSG_ID_CS_MoveIfo = 20001;
-message CS_MoveInfo {
-    repeated MoveInfo moveInfo = 1;
+message PlayerColor {
+    float a = 1;
+    float b = 2;
+    float c = 3;
+    float d = 4;
 }
+
+message Position {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
+
+message PlayerInfo {
+    string addr = 1;
+    Position  position = 2;
+    PlayerColor playerColor = 3;
+}
+
+// MSG_ID_SC_LogIn = 10002;
+message SC_Login {
+    PlayerInfo  mine = 1;
+    repeated PlayerInfo theirs = 2;
+}
+// MSG_ID_SC_NtfLogin = 10003;
+message SC_NtfLogin {
+    PlayerInfo player = 1;
+}
+
 
 message InputState {
     bool up = 1;
@@ -32,10 +61,26 @@ message InputState {
     bool right = 4;
 }
 
-message MoveInfo {
-    InputState inputState = 1;
-    // s
-    int64 tm = 2;
-    // ms
-    int64 delta = 3;
+message CS_SyncMove
+{
+    message Move {
+        InputState inputState = 1;
+        // 用于服务器模拟以及返回通知客户端
+        float tm = 2; 
+        float delta = 3;
+    }
+    repeated Move moves = 1;
+}
+
+// MSG_ID_SC_SyncMove = 20003;
+message SC_SyncMove {
+    message PlayerDiff {
+        string addr = 1;
+        message PositionDiff {
+            Position pos = 1;
+            float tm = 2;
+        }
+        PositionDiff posDiff = 2;
+    }
+    repeated PlayerDiff diffs = 1;
 }
