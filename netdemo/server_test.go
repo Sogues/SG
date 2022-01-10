@@ -133,6 +133,8 @@ type (
 		color color4
 		loc   vec3
 
+		vel vec3
+
 		moveList MoveList
 
 		state uint8
@@ -178,6 +180,7 @@ func (p *playerUnit) SyncMove(move *proto_csmsg.CS_SyncMove) {
 }
 
 func (p *playerUnit) UpdateMove() {
+	oldVel := p.vel
 	oldLoc := p.loc
 	for it := p.moveList.moves.Front(); nil != it; it = it.Next() {
 		move := it.Value.(*proto_csmsg.CS_SyncMove_Move)
@@ -192,10 +195,15 @@ func (p *playerUnit) UpdateMove() {
 		} else if move.InputState.GetRight() {
 			h = 1
 		}
-		p.loc = p.loc.Add(vec3{h, 0, v}.Mul(move.Delta).Mul(10))
+		if 0 != v && 0 != h {
+			h *= 0.70710678
+			v *= 0.70710678
+		}
+		p.vel = vec3{h, 0, v}
+		p.loc = p.loc.Add(p.vel.Mul(move.Delta).Mul(10))
 	}
 	p.moveList.moves.Init()
-	if !oldLoc.EQ(p.loc) {
+	if !oldLoc.EQ(p.loc) || !oldVel.EQ(p.vel) {
 		p.state |= statePos
 	}
 }
@@ -212,6 +220,11 @@ func (p *playerUnit) fillDiff() *proto_csmsg.SC_SyncMove_PlayerDiff {
 				X: p.loc[0],
 				Y: p.loc[1],
 				Z: p.loc[2],
+			},
+			Vel: &proto_csmsg.Position{
+				X: p.vel[0],
+				Y: p.vel[1],
+				Z: p.vel[2],
 			},
 			Tm: p.moveList.lastMoveTm,
 		}
@@ -233,6 +246,11 @@ func (p *playerUnit) DetailPlayerInfo() *proto_csmsg.PlayerInfo {
 			B: p.color[1],
 			C: p.color[2],
 			D: p.color[3],
+		},
+		Vel: &proto_csmsg.Position{
+			X: p.vel[0],
+			Y: p.vel[1],
+			Z: p.vel[2],
 		},
 	}
 	return out
