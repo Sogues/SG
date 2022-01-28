@@ -13,6 +13,9 @@ const (
 	pageSize int = 4096
 )
 
+func RegComponent[component any]() {
+}
+
 func toInteger(val valueType) EntityType {
 	return EntityType(val)
 }
@@ -35,6 +38,8 @@ type (
 var (
 	entities []EntityType
 	cs       = map[string]int{}
+
+	typeIdGenerator = 1
 )
 
 func Create() EntityType {
@@ -82,12 +87,12 @@ type denseHashMap struct {
 	sparse sparse
 }
 
-func (d *denseHashMap)hashToBucket(hash int) int {
+func (d *denseHashMap) hashToBucket(hash int) int {
 	return d.fastMod(hash, d.bucketCount())
 }
 
 func (d *denseHashMap) fastMod(val, mod int) int {
-	return val & (mod-1)
+	return val & (mod - 1)
 }
 
 func (d *denseHashMap) bucketCount() int {
