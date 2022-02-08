@@ -13,7 +13,6 @@ func TestRegistry_Create(t *testing.T) {
 	type sa struct {
 		a int
 	}
-	RegComponent[sa]()
 	a := Emplace[sa](Create(), func(out *sa) {
 		out.a = 10
 	})
